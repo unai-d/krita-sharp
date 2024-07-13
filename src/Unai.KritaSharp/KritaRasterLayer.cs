@@ -212,8 +212,15 @@ public class KritaRasterLayer
 		return bitmap;
 	}
 
-	public byte[] GetAsPng()
+	public byte[] GetAsImage(ImageFormat format = ImageFormat.Bmp, int? quality = null)
 	{
-		return GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Png, 100).ToArray();
+		return format switch
+		{
+			ImageFormat.Bmp => GetAsBmp(),
+			ImageFormat.Png => GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Png, quality ?? 100).ToArray(),
+			ImageFormat.Jpeg => GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Jpeg, quality ?? 80).ToArray(),
+			ImageFormat.Webp => GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Webp, quality ?? 80).ToArray(),
+			_ => throw new NotImplementedException($"Image format `{format}` not implemented for layer export"),
+		};
 	}
 }
