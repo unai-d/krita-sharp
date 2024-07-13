@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SkiaSharp;
 
 namespace Unai.KritaSharp;
 
@@ -194,5 +195,25 @@ public class KritaRasterLayer
 		bw.Write((int)rasterDataPtr);
 
 		return ms.ToArray();
+	}
+
+	public SKBitmap GetAsSkiaSharpBitmap()
+	{
+		var pixelData = GetPixelData();
+		var bitmap = new SKBitmap(LayerWidth, LayerHeight, SKColorType.Bgra8888, SKAlphaType.Opaque);
+		unsafe
+		{
+			fixed (byte* pixelDataPtr = pixelData)
+			{
+				nint destination = bitmap.GetPixels();
+				bitmap.SetPixels((nint)pixelDataPtr);
+			}
+		}
+		return bitmap;
+	}
+
+	public byte[] GetAsPng()
+	{
+		return GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Png, 100).ToArray();
 	}
 }
