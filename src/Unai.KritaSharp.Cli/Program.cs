@@ -29,8 +29,6 @@ Commands:
 
 		string command = args[0].ToLowerInvariant();
 
-		KritaProject kra;
-
 		switch (command)
 		{
 			case "-h":
@@ -42,17 +40,12 @@ Commands:
 
 			case "d":
 			case "details":
-				kra = new KritaProject(args[1]);
-				DescribeProject(kra);
+				DescribeProject(new KritaProject(args[1]));
 				break;
 
 			case "x":
 			case "extract":
-				kra = new KritaProject(args[1]);
-				var layer = kra.GetLayerByUuid(Guid.Parse(args[2]));
-				var rlayer = kra.GetRasterLayer(layer);
-				Stream outputStream = args.Length > 3 ? File.OpenWrite(args[3]) : Console.OpenStandardOutput();
-				outputStream.Write(rlayer.GetAsBmp());
+				ExtractLayer(args);
 				break;
 
 			default:
@@ -73,5 +66,14 @@ Commands:
 			Console.WriteLine($"Layer: {layer.Uuid} '{layer.Name}'");
 			Console.WriteLine($"       Opacity {(int)(layer.Opacity*100)}%  Offset X={layer.OffsetX} Y={layer.OffsetY}");
 		}
+	}
+
+	static void ExtractLayer(string[] args)
+	{
+		var kra = new KritaProject(args[1]);
+		var layer = kra.GetLayerByUuid(Guid.Parse(args[2]));
+		var rlayer = kra.GetRasterLayer(layer);
+		Stream outputStream = args.Length > 3 ? File.OpenWrite(args[3]) : Console.OpenStandardOutput();
+		outputStream.Write(rlayer.GetAsBmp());
 	}
 }
