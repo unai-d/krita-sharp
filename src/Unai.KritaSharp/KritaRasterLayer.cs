@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SkiaSharp;
 
 namespace Unai.KritaSharp;
 
@@ -194,5 +195,32 @@ public class KritaRasterLayer
 		bw.Write((int)rasterDataPtr);
 
 		return ms.ToArray();
+	}
+
+	public SKBitmap GetAsSkiaSharpBitmap()
+	{
+		var pixelData = GetPixelData();
+		var bitmap = new SKBitmap(LayerWidth, LayerHeight, SKColorType.Bgra8888, SKAlphaType.Opaque);
+		unsafe
+		{
+			fixed (byte* pixelDataPtr = pixelData)
+			{
+				nint destination = bitmap.GetPixels();
+				bitmap.SetPixels((nint)pixelDataPtr);
+			}
+		}
+		return bitmap;
+	}
+
+	public byte[] GetAsImage(ImageFormat format = ImageFormat.Bmp, int? quality = null)
+	{
+		return format switch
+		{
+			ImageFormat.Bmp => GetAsBmp(),
+			ImageFormat.Png => GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Png, quality ?? 100).ToArray(),
+			ImageFormat.Jpeg => GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Jpeg, quality ?? 80).ToArray(),
+			ImageFormat.Webp => GetAsSkiaSharpBitmap().Encode(SKEncodedImageFormat.Webp, quality ?? 80).ToArray(),
+			_ => throw new NotImplementedException($"Image format `{format}` not implemented for layer export"),
+		};
 	}
 }
